@@ -10,27 +10,28 @@ import matplotlib.pyplot as plt
 import libtiff
 from scipy.optimize import leastsq
 
-filePath='E:/QCSE data/030715polarization/'
+
+filePath='E:/QCSE data/031215 polarization/'
 differential_image = 0 # 1 = yes, display differential image; else = no, display mean image
 
-deg_0tif = libtiff.TiffFile(filePath+'semi0(167).tif')
+deg_0tif = libtiff.TiffFile(filePath+'167.tif')
 deg_0 = np.array(deg_0tif.get_tiff_array()[:,:,:], dtype='d')
-deg_15tif = libtiff.TiffFile(filePath+'semi15(182).tif')
+deg_15tif = libtiff.TiffFile(filePath+'182.tif')
 deg_15 = np.array(deg_15tif.get_tiff_array()[:,:,:], dtype='d')
-deg_30tif = libtiff.TiffFile(filePath+'semi30(197).tif')
+deg_30tif = libtiff.TiffFile(filePath+'197.tif')
 deg_30 = np.array(deg_30tif.get_tiff_array()[:,:,:], dtype='d')
-deg_45tif = libtiff.TiffFile(filePath+'semi45(212).tif')
+deg_45tif = libtiff.TiffFile(filePath+'212.tif')
 deg_45 = np.array(deg_45tif.get_tiff_array()[:,:,:], dtype='d')
-deg_60tif = libtiff.TiffFile(filePath+'semi60(227).tif')
+deg_60tif = libtiff.TiffFile(filePath+'227.tif')
 deg_60 = np.array(deg_60tif.get_tiff_array()[:,:,:], dtype='d')
-deg_75tif = libtiff.TiffFile(filePath+'semi75(242).tif')
+deg_75tif = libtiff.TiffFile(filePath+'242.tif')
 deg_75 = np.array(deg_75tif.get_tiff_array()[:,:,:], dtype='d')
-deg_90tif = libtiff.TiffFile(filePath+'semi90(257).tif')
+deg_90tif = libtiff.TiffFile(filePath+'257.tif')
 deg_90 = np.array(deg_90tif.get_tiff_array()[:,:,:], dtype='d')
-deg_153tif = libtiff.TiffFile(filePath+'semi(320).tif')
-deg_153 = np.array(deg_153tif.get_tiff_array()[:,:,:], dtype='d')
-deg_113tif = libtiff.TiffFile(filePath+'semi(280).tif')
-deg_113 = np.array(deg_113tif.get_tiff_array()[:,:,:], dtype='d')
+#deg_153tif = libtiff.TiffFile(filePath+'320.tif')
+#deg_153 = np.array(deg_153tif.get_tiff_array()[:,:,:], dtype='d')
+#deg_113tif = libtiff.TiffFile(filePath+'280.tif')
+#deg_113 = np.array(deg_113tif.get_tiff_array()[:,:,:], dtype='d')
 
 frame = len(deg_0[:,0,0])
 row = len(deg_0[0,:,0])
@@ -130,10 +131,10 @@ QDint_45 = blinkon_mean(deg_45, pts, fig, ax)
 QDint_60 = blinkon_mean(deg_60, pts, fig, ax)
 QDint_75 = blinkon_mean(deg_75, pts, fig, ax)
 QDint_90 = blinkon_mean(deg_90, pts, fig, ax)
-QDint_153 = blinkon_mean(deg_153, pts, fig, ax)
-QDint_113 = blinkon_mean(deg_113, pts, fig, ax)
-QDint = np.concatenate((QDint_0, QDint_15, QDint_30, QDint_45, QDint_60, QDint_75, QDint_90, QDint_113, QDint_153), axis=1)
-QDint = np.reshape(QDint, [9, len(pts)])
+#QDint_153 = blinkon_mean(deg_153, pts, fig, ax)
+#QDint_113 = blinkon_mean(deg_113, pts, fig, ax)
+QDint = np.concatenate((QDint_0, QDint_15, QDint_30, QDint_45, QDint_60, QDint_75, QDint_90), axis=1)
+QDint = np.reshape(QDint, [7, len(pts)])
 
 def get_color():
     for item in ['r', 'g', 'b', 'c', 'm', 'y', 'k']:
@@ -142,8 +143,8 @@ color = get_color()
 
 
 fig, ax = plt.subplots()
-angle = np.array([0,15,30,45,60,75,90,113,153])
-arti_signal = np.reshape(np.tile(np.cos(np.pi*angle/180)**2, [len(pts)]),[9, len(pts)], order='F')
+angle = np.array([0,15,30,45,60,75,90])
+arti_signal = np.reshape(np.tile(np.cos(np.pi*angle/180)**2, [len(pts)]),[7, len(pts)], order='F')
 QDint = QDint + arti_signal*0
 for i in range(len(pts)):
     acolor = next(color)    
@@ -162,6 +163,6 @@ for i in range(len(pts)):
     
     ax.plot(np.linspace(0,180,1000), data_fit, acolor+ '-', label='QD{}'.format(i)+' fit')
     #ax.plot(np.linspace(0,180,1000), data_first_guess, '--', label='first guess')
-    ax.set_xlim(0,180)    
+    ax.set_xlim(-1,180)    
     ax.legend()
     fig.canvas.draw()
