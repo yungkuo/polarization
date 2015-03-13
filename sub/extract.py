@@ -18,7 +18,8 @@ def blinkon_mean(mov, pts, scan, fig, ax):
         
     fig, ax = plt.subplots()
     for i in range(len(pts)):
-        ax.plot(np.arange(0,frame,1), timetraces1[i,:])
+        ax.plot(np.arange(0,frame,1), timetraces1[i,:], label='QD {}'.format(i))
+        ax.legend()
         fig.canvas.draw()
         
     std = np.std(timetraces1[:,:],axis=1,ddof=1,dtype='d')
