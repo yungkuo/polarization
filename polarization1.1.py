@@ -14,13 +14,16 @@ from scipy.optimize import curve_fit
 from sub import extract
 
 
-filePath='E:/QCSE data/031215 polarization/run4/'
+filePath = '/Users/yung/run4/'
 differential_image = 1 # 1 = yes, display differential image; else = no, display mean image
 deg_0 = 167
 scan = 3
 
 angle = []
 QDint = []
+QDstd = []
+offint = []
+offstd = []
 for file in os.listdir(filePath):
     current_file = os.path.join(filePath, file)
     S = file.split('.')   
@@ -77,9 +80,30 @@ for file in os.listdir(filePath):
             else:       
                 ax[i].imshow(mov_mean[pts[i,1]-scan:pts[i,1]+scan, pts[i,0]-scan:pts[i,0]+scan])
    
-    QDint = np.append(QDint, extract.blinkon_mean(mov, pts, scan, fig, ax))
+    blinkon_int, blinkon_std = extract.blinkon_mean(mov, pts, scan, fig, ax) 
+    blinkoff_int, blinkoff_std = extract.blinkoff_mean(mov, pts, scan, fig, ax)
+    QDint = np.append(QDint, blinkon_int)
+    QDstd = np.append(QDstd, blinkon_std)
+    offint = np.append(offint, blinkoff_int)
+    offstd = np.append(offstd, blinkoff_std)
 
 QDint = np.reshape(QDint, [len(angle), len(pts)])
+QDstd = np.reshape(QDstd, [len(angle), len(pts)])
+offint = np.reshape(offint, [len(angle), len(pts)])
+offstd = np.reshape(offstd, [len(angle), len(pts)])
+
+#for i in range (len(pts)):
+#    fig, ax = plt.subplots()
+#    timetraces1 = np.mean(np.mean(mov[:, pts[i,1]-scan:pts[i,1]+scan, pts[i,0]-scan:pts[i,0]+scan],axis=1), axis=1)
+#    ax.plot(np.arange(0,frame,1), timetraces1)
+#    ax.plot(np.arange(0,frame,1),np.tile(QDint[26,i],frame),label='on')
+#    ax.plot(np.arange(0,frame,1),np.tile(QDstd[26,i]+QDint[26,i],frame),label='on std')
+#    ax.plot(np.arange(0,frame,1),np.tile(offint[26,i],frame), label='off')
+#    ax.plot(np.arange(0,frame,1),np.tile(offstd[26,i]+offint[26,i],frame), label='off std')
+#    ax.legend()
+
+#QDint = QDint-offint
+
 
 def get_color():
     for item in ['b', 'g', 'r', 'c', 'm', 'y', 'k']:
@@ -97,6 +121,7 @@ QDint = QDint + arti_signal*0
 for i in range(len(pts)):
     acolor = next(color)    
     ax[i].scatter((angle-deg_0)*2, QDint[:,i], color=acolor, marker='o')
+    ax[i].errorbar((angle-deg_0)*2, QDint[:,i], xerr=None, yerr=QDstd[:,i], ecolor=acolor, fmt='none')    
     
     guess_min = np.min(QDint[:,i])
     guess_amplitude = np.max(QDint[:,i])-np.min(QDint[:,i])
