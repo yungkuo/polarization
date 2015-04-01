@@ -28,7 +28,7 @@ for file in os.listdir(filePath):
     mov = np.array(mov.get_tiff_array()[:,:,:], dtype='d')
     angle = np.append(angle, [int(s) for s in S if s.isdigit()])
 
-    if np.mean(angle, dtype = 'int') == 167:
+    if np.mean(angle, dtype = 'int') == deg_0:
 
         frame = len(mov[:,0,0])
         row = len(mov[0,:,0])
@@ -52,14 +52,21 @@ for file in os.listdir(filePath):
             ax.imshow(mov_mean)
             
         #pts = np.array(plt.ginput(n=0, timeout=0))
-        pts = np.array([   [ 109.70471597,  472.92015005],
-         [ 111.76259378,  465.96055734],
-         [ 175.87084673,  313.59163987],
-         [ 183.28831726,  148.58949625],
-         [ 175.87084673,  132.99839228],
-         [ 330.59764202,  434.00643087],
+        pts = np.array([[ 108.42546584,  212.76708075],
+                        [ 109.41304348,  472.52732919],
 
-                ])
+                        [ 110.4068323,   206.79813665],
+                        [ 111.40062112,  466.00080745],
+
+                        [ 175.00310559,  132.27639752],
+                        [ 184.94720497,  386.68012422],
+
+
+                        [ 183.45341615,  148.17080745],
+                        [ 192.90372671,  403.58074534],
+  
+
+               ])
 
         print pts
         ax.plot(pts[:,0],pts[:,1],'r+', markersize=10)
@@ -82,7 +89,7 @@ for file in os.listdir(filePath):
 QDint = np.reshape(QDint, [len(angle), len(pts)])
 
 def get_color():
-    for item in ['b', 'g', 'r', 'c', 'm', 'y', 'k']:
+    for item in ['b', 'g', 'r', 'c', 'm', 'y', 'k', '0.9', '0.6', '0.3']:
         yield item
 color = get_color()
 
@@ -114,7 +121,7 @@ for i in range(len(pts)):
     
     #data_fit = est_amplitude*np.cos(np.linspace(0,np.pi,1000)+est_phase)**2 + est_min
     
-    ax[i].plot(np.linspace(0,360,1000), data_fit, acolor+ '-', label='QD{}'.format(i)+' fit')
+    ax[i].plot(np.linspace(0,360,1000), data_fit, color=acolor, linestyle='-', label='QD{}'.format(i)+' fit')
     #ax.plot(np.linspace(0,180,1000), data_first_guess, '--', label='first guess')
     ax[i].set_xlim((angle.min()-deg_0)*2-1,(angle.max()-deg_0)*2+1)    
     ax[i].legend()

@@ -16,23 +16,23 @@ def blinkon_mean(mov, pts, scan, fig, ax):
         timetraces1 = np.append(timetraces1, timetrace)
     timetraces1 = np.reshape(timetraces1, [len(pts), frame])
         
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(len(pts))
     for i in range(len(pts)):
-        ax.plot(np.arange(0,frame,1), timetraces1[i,:], label='QD {}'.format(i))
-        ax.legend()
+        ax[i].plot(np.arange(0,frame,1), timetraces1[i,:], label='QD {}'.format(i))
+        ax[i].legend()
         fig.canvas.draw()
         
     std = np.std(timetraces1[:,:],axis=1,ddof=1,dtype='d')
     threshold = np.mean(timetraces1, axis=1)-std/2
         
     for i in range(len(pts)):
-        ax.plot(np.arange(0,frame,1), np.tile(threshold[i], frame), 'r-', label='threshold')
+        ax[i].plot(np.arange(0,frame,1), np.tile(threshold[i], frame), 'r-', label='threshold')
         fig.canvas.draw()
         
     QDintensity =[]
     for n in range(len(pts)):
         QD1 = np.mean([timetraces1[n,i] for i in range(frame) if timetraces1[n,i] > threshold[n]])
-        ax.plot(np.arange(0,frame,1), np.tile(QD1, frame), 'y', label='on mean')       
+        ax[n].plot(np.arange(0,frame,1), np.tile(QD1, frame), 'y', label='on mean')       
         fig.canvas.draw()
         QDintensity = np.append(QDintensity, QD1)
         
