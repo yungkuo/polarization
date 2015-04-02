@@ -21,7 +21,10 @@ scan = 3
 displacement = -4
 n1 = 1.5
 n2 = 1.000
-
+plot_nmlcosinewave = 1 
+# 1 = normalize emission intensity by deviding the intensity in one view by the sum intensity in two views 
+# (requires: particle 0,2,4,6 in one view to be the same particle as particle 1,3,5,7 in the other view )
+# else = not normalize, plot the raw intensity reading
 
 angle = []
 QDint = []
@@ -114,6 +117,16 @@ QDint = np.reshape(QDint, [len(angle), len(pts)])
 QDstd = np.reshape(QDstd, [len(angle), len(pts)])
 offint = np.reshape(offint, [len(angle), len(pts)])
 offstd = np.reshape(offstd, [len(angle), len(pts)])
+if plot_nmlcosinewave == 1:
+    nmlfactor = np.sum([QDint[:,i:i+2] for i in range(len(pts)) if i%2==0], axis=2).T
+    QDint1 = QDint/np.repeat(nmlfactor, 2, axis=1)
+    QDint1mean = np.mean(QDint1, axis=0)
+    QDint = QDint1/QDint1mean*0.5
+    QDstd = (QDstd/np.repeat(nmlfactor, 2, axis=1))/QDint1mean*0.5
+    
+else:
+    QDint = QDint
+   
 #BGint = np.reshape(BGint, [len(angle), len(pts)])
 #BGstd = np.reshape(BGstd, [len(angle), len(pts)])
 
@@ -187,6 +200,7 @@ for i in range(len(pts)):
     
     ax[i].plot(np.linspace(0,360,1000), data_fit, color=acolor, linestyle='-', label='QD{}'.format(i)+' fit')
     ax[i].plot(np.linspace(0,360,1000), data_first_guess, color=acolor, linestyle='--', label='first guess')
+    ax[i].plot(np.linspace(0,360,1000), np.tile(np.mean(QDint[:,i]), 1000), '0.75')#, label='mean')
     ax[i].set_xlim((angle.min()-deg_0)*2-1,(angle.max()-deg_0)*2+1)    
     ax[i].legend(fontsize='xx-small',frameon=None)
     fig.canvas.draw()
