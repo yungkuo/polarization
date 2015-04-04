@@ -206,6 +206,6 @@ for i in range(len(pts)):
     fig.canvas.draw()
 
 Imax = A+b
-Imin = -(A-Imax)
+Imin = b
 Azimuth = phi*180/np.pi
 delta = (Imax-Imin)/(Imax+Imin)
