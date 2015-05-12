@@ -9,12 +9,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import libtiff
 import os
-from scipy.optimize import leastsq
+#from scipy.optimize import leastsq
 from scipy.optimize import curve_fit
 from sub import extract
 
 #filePath = 'E:/QCSE data/031215 polarization/run4/'
-filePath = '/Users/yung/run4/'
+filePath = '/Users/yung/Documents/Data/dipole orientation/manual run4/'
 differential_image = 0 # 1 = yes, display differential image; else = no, display mean image
 deg_0 = 167
 scan = 3
@@ -33,7 +33,26 @@ offint = []
 offstd = []
 BGint = []
 BGstd = []
-for file in os.listdir(filePath):
+
+#pts = np.array([[ 108.42546584,  212.76708075],
+#[ 109.41304348,  472.52732919],
+
+#[ 110.4068323,   206.79813665],
+#[ 111.40062112,  466.00080745],
+
+#[ 175.00310559,  132.27639752],
+#[ 184.94720497,  386.68012422],
+
+
+#[ 183.45341615,  148.17080745],
+#[ 192.90372671,  403.58074534]])
+
+def listdir_nohidden(path):
+    for f in os.listdir(path):
+        if not f.startswith('.'):
+            yield f
+
+for file in listdir_nohidden(filePath):
     current_file = os.path.join(filePath, file)
     S = file.split('.')   
     mov = libtiff.TiffFile(current_file)
@@ -63,23 +82,17 @@ for file in os.listdir(filePath):
             fig, ax = plt.subplots()
             ax.imshow(mov_mean)
             
-        #pts = np.array(plt.ginput(n=0, timeout=0))
+        pts = np.array(plt.ginput(n=0, timeout=0))
 
-        pts = np.array([[ 108.42546584,  212.76708075],
-                        [ 109.41304348,  472.52732919],
-                
-                        [ 110.4068323,   206.79813665],
-                        [ 111.40062112,  466.00080745],
-
-                        [ 175.00310559,  132.27639752],
-                        [ 184.94720497,  386.68012422],
-
-
-                        [ 183.45341615,  148.17080745],
-                        [ 192.90372671,  403.58074534],
+        #pts = np.array([[ 246.55590062,  123.31987578],
+        #             [ 260.86273292,  377.73602484],
+        #             [ 195.87267081, 114.39440994],
+        #             [ 206.80434783,  366.79813665],
+        #             [ 228.68012422,  193.89130435],
+        #             [ 241.58695652,  452.25776398],
   
 
-               ])
+ #              ])
                
 
         print pts
@@ -157,7 +170,6 @@ A = []
 phi = []
 b = []
 fit_prmtall = []
-Azimuth = []
 
 #arti_signal = np.reshape(np.tile(np.cos(np.pi*(angle-deg_0-50)*2/180)**2, [len(pts)]),[len(angle), len(pts)], order='F')
 
@@ -172,8 +184,10 @@ QDint = QDint+arti_signal*0
 #    return cos_sqr(angle, *p) - yexp
 guess_min = np.amin(QDint, axis=0)
 guess_amplitude = np.amax(QDint,axis=0)-np.amin(QDint, axis=0)
-guess_phase = [0,0,0,0,0,0,0,0]#angle[int(np.where(QDint==np.amax(QDint, axis=0))[0])]  
+guess_phase = np.repeat(0,len(pts))#angle[int(np.where(QDint==np.amax(QDint, axis=0))[0])]  
 guess = np.array([guess_amplitude, guess_phase, guess_min])
+
+
 
 fig, ax = plt.subplots(len(pts))
 for i in range(len(pts)):
@@ -185,28 +199,11 @@ for i in range(len(pts)):
     phi = np.append(phi, fit_prmt[1])
     b = np.append(b,fit_prmt[2])  
     fit_prmtall = np.append(fit_prmtall, fit_prmt)
-    Azimuth = np.append(Azimuth, fit_prmt[1]*180/np.pi) 
-    print fit_prmt, A, phi, b
+    
     #ax[i,1].scatter((angle-deg_0)*2, BGint[:,i], color=acolor, marker='^')
     #ax[i,1].errorbar((angle-deg_0)*2, BGint[:,i], xerr=None, yerr=BGstd[:,i], ecolor=acolor, fmt='none')     
     
-    '''
-    guess_min = np.min(QDint[:,i])
-    guess_amplitude = np.max(QDint[:,i])-np.min(QDint[:,i])
-    guess_phase = 0#(angle[int(np.where(QDint==QDint[:,i].max())[0])])*np.pi/180
-    guess = [guess_amplitude, guess_phase, guess_min]
-    data_first_guess = cos_sqr(np.linspace(0,np.pi*2,1000), *guess)
-    '''
-    '''
-    Non-linear least square fit
-    
-    fit_prmt, pcov = curve_fit(cos_sqr, angle, QDint[:,i], p0=guess)    
-    data_fit = cos_sqr(np.linspace(0,np.pi*2,1000), *fit_prmt)
-    perr = np.sqrt(np.diag(pcov))
-    A = np.append(A, fit_prmt[0])
-    phi = np.append(phi, fit_prmt[1])
-    b = np.append(b,fit_prmt[2])    
-    '''
+
     '''
     Least square fit
     
@@ -223,19 +220,15 @@ for i in range(len(pts)):
     ax[i].plot(np.linspace(0,360,1000), data_fit, color=acolor, linestyle='-', label='QD{}'.format(i)+' fit')
     ax[i].plot(np.linspace(0,360,1000), data_first_guess, color=acolor, linestyle='--', label='first guess')
     ax[i].plot(np.linspace(0,360,1000), np.tile(np.mean(QDint[:,i]), 1000), '0.75')#, label='mean')
-    ax[i].set_xlim((angle.min())*180/np.pi-1,(angle.max())*180/np.pi+1)    
+    ax[i].set_xlim(0,360)#((angle.min())*180/np.pi-1,(angle.max())*180/np.pi+1)    
     ax[i].legend(fontsize='xx-small',frameon=None)
 
-fit_prmtall = np.reshape(fit_prmtall, [len(pts),3])
-fig, ax = plt.subplots(len(pts))
-for i in range(len(pts)):
-    ax[i].plot(np.linspace(0,360,1000), cos_sqr(np.linspace(0,np.pi*2,1000), *fit_prmtall[i,:]))
+#fit_prmtall = np.reshape(fit_prmtall, [len(pts),3])
+#fig, ax = plt.subplots(len(pts))
+#for i in range(len(pts)):
+#    ax[i].plot(np.linspace(0,360,1000), cos_sqr(np.linspace(0,np.pi*2,1000), *fit_prmtall[i,:]))
+
 Imax = A+b
-<<<<<<< Updated upstream
 Imin = b
 Azimuth = phi*180/np.pi
-=======
-Imin = -(A-Imax)
-azimuth = phi*180/np.pi
->>>>>>> Stashed changes
-delta = (Imax-Imin)/(Imax+Imin)
+delta = np.abs(Imax-Imin)/(Imax+Imin)
