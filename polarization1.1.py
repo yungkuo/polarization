@@ -9,12 +9,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import libtiff
 import os
-from scipy.optimize import leastsq
-#from scipy.optimize import curve_fit
+#from scipy.optimize import leastsq
+from scipy.optimize import curve_fit
 from sub import extract
 
+<<<<<<< HEAD
 filePath = 'E:/QCSE data/031215 polarization/run4/'
 #filePath = '/Users/yung/run4/'
+=======
+#filePath = 'E:/QCSE data/031215 polarization/run4/'
+filePath = '/Users/yung/Documents/Data/dipole orientation/manual run4/'
+>>>>>>> origin/master
 differential_image = 0 # 1 = yes, display differential image; else = no, display mean image
 deg_0 = 167
 scan = 3
@@ -33,7 +38,26 @@ offint = []
 offstd = []
 BGint = []
 BGstd = []
-for file in os.listdir(filePath):
+
+#pts = np.array([[ 108.42546584,  212.76708075],
+#[ 109.41304348,  472.52732919],
+
+#[ 110.4068323,   206.79813665],
+#[ 111.40062112,  466.00080745],
+
+#[ 175.00310559,  132.27639752],
+#[ 184.94720497,  386.68012422],
+
+
+#[ 183.45341615,  148.17080745],
+#[ 192.90372671,  403.58074534]])
+
+def listdir_nohidden(path):
+    for f in os.listdir(path):
+        if not f.startswith('.'):
+            yield f
+
+for file in listdir_nohidden(filePath):
     current_file = os.path.join(filePath, file)
     S = file.split('.')   
     mov = libtiff.TiffFile(current_file)
@@ -63,24 +87,18 @@ for file in os.listdir(filePath):
             fig, ax = plt.subplots()
             ax.imshow(mov_mean)
             
-        #pts = np.array(plt.ginput(n=0, timeout=0))
+        pts = np.array(plt.ginput(n=0, timeout=0))
 
-        pts = np.array([[ 108.42546584,  212.76708075],
-                        [ 109.41304348,  472.52732919],
-
-                        [ 110.4068323,   206.79813665],
-                        [ 111.40062112,  466.00080745],
-
-                        [ 175.00310559,  132.27639752],
-                        [ 184.94720497,  386.68012422],
-
-
-                        [ 183.45341615,  148.17080745],
-                        [ 192.90372671,  403.58074534],
+        #pts = np.array([[ 246.55590062,  123.31987578],
+        #             [ 260.86273292,  377.73602484],
+        #             [ 195.87267081, 114.39440994],
+        #             [ 206.80434783,  366.79813665],
+        #             [ 228.68012422,  193.89130435],
+        #             [ 241.58695652,  452.25776398],
   
 
-               ])
-
+ #              ])
+               
 
         print pts
         ax.plot(pts[:,0],pts[:,1],'r+', markersize=10)
@@ -112,7 +130,7 @@ for file in os.listdir(filePath):
     #BGint = np.append(BGint, BG_int)
     #BGstd = np.append(BGstd, BG_std)
 
-
+angle = (angle-deg_0)*2*np.pi/180
 QDint = np.reshape(QDint, [len(angle), len(pts)])
 QDstd = np.reshape(QDstd, [len(angle), len(pts)])
 offint = np.reshape(offint, [len(angle), len(pts)])
@@ -121,11 +139,11 @@ offint = np.reshape(offint, [len(angle), len(pts)])
 #QDint = QDint-BGint
 
 if plot_nmlcosinewave == 1:
-    nmlfactor = np.sum([QDint[:,i:i+2] for i in range(len(pts)) if i%2==0], axis=2).T
-    QDint1 = QDint/np.repeat(nmlfactor, 2, axis=1)
+    nmlfactor = np.repeat(np.sum([QDint[:,i:i+2] for i in range(len(pts)) if i%2==0], axis=2).T, 2, axis=1)
+    QDint1 = QDint/nmlfactor
     QDint1mean = np.mean(QDint1, axis=0)
     QDint = QDint1/QDint1mean*0.5
-    QDstd = (QDstd/np.repeat(nmlfactor, 2, axis=1))/QDint1mean*0.5
+    QDstd = (QDstd/nmlfactor)/QDint1mean*0.5
     
 else:
     QDint = QDint
@@ -157,57 +175,71 @@ def cos_sqr(x, *p):
 A = []
 phi = []
 b = []
+fit_prmtall = []
 
+#arti_signal = np.reshape(np.tile(np.cos(np.pi*(angle-deg_0-50)*2/180)**2, [len(pts)]),[len(angle), len(pts)], order='F')
+
+arti_signal = []
+for i in range(len(pts)):
+    arti_phi = (5+i*10)*np.pi/180
+    arti_signal = np.append(arti_signal, cos_sqr(angle, *[0.3,arti_phi,0.3]))
+arti_signal = np.reshape(arti_signal, [len(pts),len(angle)]).T
+QDint = QDint+arti_signal*0
+
+#def residuals(p, angle, yexp):
+#    return cos_sqr(angle, *p) - yexp
+guess_min = np.amin(QDint, axis=0)
+guess_amplitude = np.amax(QDint,axis=0)-np.amin(QDint, axis=0)
+guess_phase = np.repeat(0,len(pts))#angle[int(np.where(QDint==np.amax(QDint, axis=0))[0])]  
+guess = np.array([guess_amplitude, guess_phase, guess_min])
+
+
+
+<<<<<<< HEAD
 
     
+=======
+>>>>>>> origin/master
 fig, ax = plt.subplots(len(pts))
-arti_signal = np.reshape(np.tile(np.cos(np.pi*(angle-deg_0)*2/180)**2, [len(pts)]),[len(angle), len(pts)], order='F')
-QDint = QDint + arti_signal*0
 for i in range(len(pts)):
-    acolor = next(color)    
-    ax[i].scatter((angle-deg_0)*2, QDint[:,i], color=acolor, marker='o')
-    ax[i].errorbar((angle-deg_0)*2, QDint[:,i], xerr=None, yerr=QDstd[:,i], ecolor=acolor, fmt='none')    
+    data_first_guess = cos_sqr(np.linspace(0,np.pi*2,1000), *guess[:,i])    
+    fit_prmt, pcov = curve_fit(cos_sqr, angle, QDint[:,i], p0=guess[:,i])    
+    data_fit = cos_sqr(np.linspace(0,np.pi*2,1000), *fit_prmt)
+    
+    A = np.append(A, fit_prmt[0])
+    phi = np.append(phi, fit_prmt[1])
+    b = np.append(b,fit_prmt[2])  
+    fit_prmtall = np.append(fit_prmtall, fit_prmt)
+    
     #ax[i,1].scatter((angle-deg_0)*2, BGint[:,i], color=acolor, marker='^')
     #ax[i,1].errorbar((angle-deg_0)*2, BGint[:,i], xerr=None, yerr=BGstd[:,i], ecolor=acolor, fmt='none')     
     
-    
-    guess_min = np.min(QDint[:,i])
-    guess_amplitude = np.max(QDint[:,i])-np.min(QDint[:,i])
-    guess_phase = (angle[int(np.where(QDint==QDint[:,i].max())[0])]-deg_0)*2*np.pi/180
-    guess = [guess_amplitude, guess_phase, guess_min]
-    data_first_guess = cos_sqr(np.linspace(0,np.pi*2,1000), *guess)
 
-    '''
-    Non-linear least square fit
-    
-    fit_prmt, pcov = curve_fit(cos_sqr, (angle-deg_0)*2*np.pi/180, QDint[:,i], p0=guess)    
-    data_fit = cos_sqr(np.linspace(0,np.pi*2,1000), *fit_prmt)
-    perr = np.sqrt(np.diag(pcov))
-    '''
-    
-    
     '''
     Least square fit
-    '''
-    optimize_func = lambda x: x[0]*np.cos(x[1]-np.pi*(angle-deg_0)*2/180)**2 + x[2] - QDint[:,i]
-    est_amplitude, est_phase, est_min = leastsq(optimize_func, guess)[0]
+    
+    #optimize_func = lambda x: x[0]*np.cos(x[1]-np.pi*(angle-deg_0)*2/180)**2 + x[2] - QDint[:,i]
+    est_amplitude, est_phase, est_min = leastsq(residuals, guess, args=(angle, QDint[:,i]))[0]
     
 
-    data_fit = est_amplitude*np.cos(est_phase-np.linspace(0,np.pi*2,1000))**2 + est_min
+    data_fit = cos_sqr(np.linspace(0,np.pi*2,1000), *[est_amplitude, est_phase, est_min])
+    '''
+    acolor = next(color)
     
-    A = np.append(A, est_amplitude)
-    phi = np.append(phi, est_phase)
-    b = np.append(b,est_min)    
-    
-    
+    ax[i].scatter(angle*180/np.pi, QDint[:,i], color=acolor, marker='o')
+    ax[i].errorbar(angle*180/np.pi, QDint[:,i], xerr=None, yerr=QDstd[:,i], ecolor=acolor, fmt='none')    
     ax[i].plot(np.linspace(0,360,1000), data_fit, color=acolor, linestyle='-', label='QD{}'.format(i)+' fit')
     ax[i].plot(np.linspace(0,360,1000), data_first_guess, color=acolor, linestyle='--', label='first guess')
     ax[i].plot(np.linspace(0,360,1000), np.tile(np.mean(QDint[:,i]), 1000), '0.75')#, label='mean')
-    ax[i].set_xlim((angle.min()-deg_0)*2-1,(angle.max()-deg_0)*2+1)    
+    ax[i].set_xlim(0,360)#((angle.min())*180/np.pi-1,(angle.max())*180/np.pi+1)    
     ax[i].legend(fontsize='xx-small',frameon=None)
-    fig.canvas.draw()
+
+#fit_prmtall = np.reshape(fit_prmtall, [len(pts),3])
+#fig, ax = plt.subplots(len(pts))
+#for i in range(len(pts)):
+#    ax[i].plot(np.linspace(0,360,1000), cos_sqr(np.linspace(0,np.pi*2,1000), *fit_prmtall[i,:]))
 
 Imax = A+b
 Imin = b
 Azimuth = phi*180/np.pi
-delta = (Imax-Imin)/(Imax+Imin)
+delta = np.abs(Imax-Imin)/(Imax+Imin)
